@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aevum.build/schemas/audit-event.schema.json",
+  "title": "AuditEvent",
+  "description": "STUB — authoritative schema generated in Phase 3",
+  "type": "object",
+  "required": ["event_id", "episode_id", "sequence", "event_type",
+               "schema_version", "valid_from", "valid_to", "system_time",
+               "causation_id", "correlation_id", "actor", "trace_id",
+               "span_id", "payload", "payload_hash", "prior_hash",
+               "signature", "signer_key_id"]
+}

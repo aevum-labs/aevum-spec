@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aevum.build/schemas/output-envelope.schema.json",
+  "title": "OutputEnvelope",
+  "description": "STUB — authoritative schema generated in Phase 3b from aevum-server OpenAPI output",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["ok", "error", "pending_review", "degraded", "crisis"]
+    },
+    "schema_version": { "type": "string" }
+  },
+  "required": ["status", "data", "audit_id", "confidence", "uncertainty",
+               "provenance", "review_required", "source_health",
+               "warnings", "schema_version", "reasoning_trace"]
+}

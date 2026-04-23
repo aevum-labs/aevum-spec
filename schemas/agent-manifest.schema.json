@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aevum.build/schemas/agent-manifest.schema.json",
+  "title": "AgentManifest",
+  "description": "STUB — authoritative schema generated in Phase 7",
+  "type": "object",
+  "required": ["name", "version", "autonomy_level", "max_session_duration",
+               "allowed_functions", "constitutional_review_required", "schema_version"]
+}
