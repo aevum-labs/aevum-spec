@@ -1,0 +1,9 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Aevum HTTP API",
+    "version": "0.1.0-draft",
+    "description": "STUB — authoritative schema auto-generated from aevum-server in Phase 3b and committed here"
+  },
+  "paths": {}
+}

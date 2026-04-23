@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aevum.build/schemas/complication-manifest.schema.json",
+  "title": "ComplicationManifest",
+  "description": "STUB — authoritative schema generated in Phase 6",
+  "type": "object",
+  "required": ["name", "version", "description", "capabilities",
+               "classification_max", "functions", "auth", "schema_version"]
+}
