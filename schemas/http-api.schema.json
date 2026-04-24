@@ -2,8 +2,1139 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Aevum HTTP API",
-    "version": "0.1.0-draft",
-    "description": "STUB — authoritative schema auto-generated from aevum-server in Phase 3b and committed here"
+    "version": "0.1.0",
+    "description": "Normative HTTP API schema for aevum-server Phase 3b, covering the Public Data API (/v1/) and Admin API (/_aevum/v1/)."
   },
-  "paths": {}
+  "paths": {
+    "/v1/ingest": {
+      "post": {
+        "tags": ["data"],
+        "summary": "Ingest",
+        "description": "Calls the `ingest` function. Moves data through the governed membrane into the knowledge graph. Supports `Idempotency-Key` header (UUID v4).",
+        "operationId": "ingest_v1_ingest_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/IngestRequest" }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": { "type": "string", "format": "uuid", "title": "Idempotency-Key" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful ingest. Barrier-triggered responses also return 200 with status='error' or status='crisis' in the envelope.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/OutputEnvelope" }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        },
+        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }]
+      }
+    },
+    "/v1/query": {
+      "post": {
+        "tags": ["data"],
+        "summary": "Query",
+        "description": "Calls the `query` function. Traverses the knowledge graph to assemble context for a declared purpose.",
+        "operationId": "query_v1_query_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/QueryRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful query. Returns OutputEnvelope with assembled context.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/OutputEnvelope" }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        },
+        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }]
+      }
+    },
+    "/v1/commit": {
+      "post": {
+        "tags": ["data"],
+        "summary": "Commit",
+        "description": "Calls the `commit` function. Appends an explicit event to the episodic ledger. Supports `Idempotency-Key` header (UUID v4).",
+        "operationId": "commit_v1_commit_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CommitRequest" }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": { "type": "string", "format": "uuid", "title": "Idempotency-Key" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Event committed successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/OutputEnvelope" }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        },
+        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }]
+      }
+    },
+    "/v1/replay/{audit_id}": {
+      "get": {
+        "tags": ["data"],
+        "summary": "Replay",
+        "description": "Calls the `replay` function. Reconstructs the exact OutputEnvelope for a past operation identified by audit_id.",
+        "operationId": "replay_v1_replay__audit_id__get",
+        "parameters": [
+          {
+            "name": "audit_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Audit Id" }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "description": "Comma-separated list of fields to include in reconstruction.",
+            "schema": { "type": "string", "title": "Scope" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reconstructed OutputEnvelope.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/OutputEnvelope" }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "403": {
+            "description": "Consent failure",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Audit entry not found",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        },
+        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }]
+      }
+    },
+    "/v1/review/{audit_id}": {
+      "get": {
+        "tags": ["data"],
+        "summary": "Get Review",
+        "description": "Returns the current status of a pending review identified by audit_id.",
+        "operationId": "review_v1_review__audit_id__get",
+        "parameters": [
+          {
+            "name": "audit_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Audit Id" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current review status.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/OutputEnvelope" }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Review not found",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        },
+        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }]
+      }
+    },
+    "/v1/review/{audit_id}/approve": {
+      "post": {
+        "tags": ["data"],
+        "summary": "Approve Review",
+        "description": "Records human approval of a pending review.",
+        "operationId": "approve_v1_review__audit_id__approve_post",
+        "parameters": [
+          {
+            "name": "audit_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Audit Id" }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "title": "Body" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Approval recorded.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/OutputEnvelope" }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Review not found",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "409": {
+            "description": "Review already resolved",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        },
+        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }]
+      }
+    },
+    "/v1/review/{audit_id}/veto": {
+      "post": {
+        "tags": ["data"],
+        "summary": "Veto Review",
+        "description": "Records human veto of a pending review.",
+        "operationId": "veto_v1_review__audit_id__veto_post",
+        "parameters": [
+          {
+            "name": "audit_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Audit Id" }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "title": "Body" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Veto recorded.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/OutputEnvelope" }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Review not found",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "409": {
+            "description": "Review already resolved",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        },
+        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }]
+      }
+    },
+    "/v1/health": {
+      "get": {
+        "tags": ["data"],
+        "summary": "Health",
+        "description": "Health check endpoint. Does not require authentication.",
+        "operationId": "health_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Service healthy.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" }
+              }
+            }
+          },
+          "503": {
+            "description": "Service unhealthy.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/v1/openapi.json": {
+      "get": {
+        "tags": ["data"],
+        "summary": "Openapi Schema",
+        "description": "Returns the OpenAPI 3.1 schema for the Public Data API surface.",
+        "operationId": "openapi_schema_v1_openapi_json_get",
+        "responses": {
+          "200": {
+            "description": "OpenAPI 3.1 schema document.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "title": "OpenAPI Schema" }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/_aevum/v1/complications": {
+      "get": {
+        "tags": ["admin"],
+        "summary": "List Complications",
+        "description": "Returns all registered complications and their current status.",
+        "operationId": "list_complications__aevum_v1_complications_get",
+        "responses": {
+          "200": {
+            "description": "List of complications.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/ComplicationInfo" },
+                  "title": "Complications"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        },
+        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }]
+      }
+    },
+    "/_aevum/v1/complications/{id}/approve": {
+      "post": {
+        "tags": ["admin"],
+        "summary": "Approve Complication",
+        "description": "Approves a complication pending operator authorization.",
+        "operationId": "approve_complication__aevum_v1_complications__id__approve_post",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Id" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Complication approved.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ComplicationInfo" }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Complication not found",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        },
+        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }]
+      }
+    },
+    "/_aevum/v1/complications/{id}/suspend": {
+      "post": {
+        "tags": ["admin"],
+        "summary": "Suspend Complication",
+        "description": "Suspends an active complication.",
+        "operationId": "suspend_complication__aevum_v1_complications__id__suspend_post",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Id" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Complication suspended.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ComplicationInfo" }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Complication not found",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        },
+        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }]
+      }
+    },
+    "/_aevum/v1/complications/{id}/health": {
+      "get": {
+        "tags": ["admin"],
+        "summary": "Complication Health",
+        "description": "Returns the current health status of a registered complication.",
+        "operationId": "complication_health__aevum_v1_complications__id__health_get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Id" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Complication health status.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ComplicationHealthResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Complication not found",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        },
+        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }]
+      }
+    },
+    "/_aevum/v1/usage": {
+      "get": {
+        "tags": ["admin"],
+        "summary": "Usage",
+        "description": "Returns aggregated usage statistics for the current billing period.",
+        "operationId": "usage__aevum_v1_usage_get",
+        "responses": {
+          "200": {
+            "description": "Usage summary.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UsageSummary" }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        },
+        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }]
+      }
+    },
+    "/_aevum/v1/federation/peers": {
+      "get": {
+        "tags": ["admin"],
+        "summary": "Federation Peers",
+        "description": "Returns the list of known federation peers and their connection status.",
+        "operationId": "federation_peers__aevum_v1_federation_peers_get",
+        "responses": {
+          "200": {
+            "description": "List of federation peers.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/FederationPeer" },
+                  "title": "Peers"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {
+                "schema": { "$ref": "#/components/schemas/ProblemDetail" }
+              }
+            }
+          }
+        },
+        "security": [{ "ApiKeyAuth": [] }, { "BearerAuth": [] }]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "IngestRequest": {
+        "type": "object",
+        "title": "IngestRequest",
+        "properties": {
+          "data": {
+            "type": "object",
+            "title": "Data"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/ProvenanceRecordInput"
+          },
+          "purpose": {
+            "type": "string",
+            "title": "Purpose"
+          },
+          "subject_id": {
+            "type": "string",
+            "title": "Subject Id"
+          }
+        },
+        "required": ["data", "provenance", "purpose", "subject_id"]
+      },
+      "QueryRequest": {
+        "type": "object",
+        "title": "QueryRequest",
+        "properties": {
+          "purpose": {
+            "type": "string",
+            "title": "Purpose"
+          },
+          "subject_ids": {
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "Subject Ids"
+          },
+          "constraints": {
+            "type": "object",
+            "title": "Constraints"
+          },
+          "classification_max": {
+            "type": "integer",
+            "title": "Classification Max"
+          }
+        },
+        "required": ["purpose", "subject_ids"]
+      },
+      "CommitRequest": {
+        "type": "object",
+        "title": "CommitRequest",
+        "properties": {
+          "event_type": {
+            "type": "string",
+            "title": "Event Type"
+          },
+          "payload": {
+            "type": "object",
+            "title": "Payload"
+          }
+        },
+        "required": ["event_type", "payload"]
+      },
+      "ProvenanceRecordInput": {
+        "type": "object",
+        "title": "ProvenanceRecordInput",
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "title": "Source Id"
+          },
+          "ingest_audit_id": {
+            "type": "string",
+            "title": "Ingest Audit Id"
+          },
+          "chain_of_custody": {
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "Chain Of Custody"
+          },
+          "classification": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3,
+            "title": "Classification"
+          },
+          "model_id": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Model Id",
+            "default": null
+          }
+        },
+        "required": ["source_id", "ingest_audit_id", "chain_of_custody", "classification"]
+      },
+      "OutputEnvelope": {
+        "type": "object",
+        "title": "OutputEnvelope",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["ok", "error", "pending_review", "degraded", "crisis"],
+            "title": "Status"
+          },
+          "data": {
+            "type": "object",
+            "title": "Data"
+          },
+          "audit_id": {
+            "type": "string",
+            "title": "Audit Id"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "title": "Confidence"
+          },
+          "uncertainty": {
+            "$ref": "#/components/schemas/UncertaintyAnnotation"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/ProvenanceRecord"
+          },
+          "review_required": {
+            "type": "boolean",
+            "title": "Review Required"
+          },
+          "review_context": {
+            "anyOf": [
+              { "$ref": "#/components/schemas/ReviewContext" },
+              { "type": "null" }
+            ],
+            "title": "Review Context",
+            "default": null
+          },
+          "source_health": {
+            "$ref": "#/components/schemas/SourceHealthSummary"
+          },
+          "warnings": {
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "Warnings"
+          },
+          "schema_version": {
+            "type": "string",
+            "title": "Schema Version"
+          },
+          "reasoning_trace": {
+            "$ref": "#/components/schemas/ReasoningTrace"
+          }
+        },
+        "required": [
+          "status", "data", "audit_id", "confidence", "uncertainty",
+          "provenance", "review_required", "source_health",
+          "warnings", "schema_version", "reasoning_trace"
+        ]
+      },
+      "UncertaintyAnnotation": {
+        "type": "object",
+        "title": "UncertaintyAnnotation",
+        "properties": {
+          "sources": {
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "Sources"
+          },
+          "missing_context": {
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "Missing Context"
+          },
+          "assumptions": {
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "Assumptions"
+          },
+          "confidence_basis": {
+            "type": "string",
+            "title": "Confidence Basis"
+          }
+        },
+        "required": ["sources", "missing_context", "assumptions", "confidence_basis"]
+      },
+      "ProvenanceRecord": {
+        "type": "object",
+        "title": "ProvenanceRecord",
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "title": "Source Id"
+          },
+          "ingest_audit_id": {
+            "type": "string",
+            "title": "Ingest Audit Id"
+          },
+          "chain_of_custody": {
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "Chain Of Custody"
+          },
+          "classification": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3,
+            "title": "Classification"
+          },
+          "model_id": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Model Id"
+          }
+        },
+        "required": ["source_id", "ingest_audit_id", "chain_of_custody", "classification"]
+      },
+      "ReviewContext": {
+        "type": "object",
+        "title": "ReviewContext",
+        "properties": {
+          "proposed_action": {
+            "type": "string",
+            "title": "Proposed Action"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "deadline": {
+            "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }],
+            "title": "Deadline",
+            "default": null
+          },
+          "autonomy_level": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5,
+            "title": "Autonomy Level"
+          },
+          "risk_assessment": {
+            "type": "string",
+            "title": "Risk Assessment"
+          }
+        },
+        "required": ["proposed_action", "reason", "autonomy_level", "risk_assessment"]
+      },
+      "SourceHealthSummary": {
+        "type": "object",
+        "title": "SourceHealthSummary",
+        "properties": {
+          "available": {
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "Available"
+          },
+          "degraded": {
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "Degraded"
+          },
+          "unavailable": {
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "Unavailable"
+          },
+          "overall": {
+            "type": "string",
+            "enum": ["healthy", "degraded", "critical"],
+            "title": "Overall"
+          }
+        },
+        "required": ["available", "degraded", "unavailable", "overall"]
+      },
+      "ReasoningStep": {
+        "type": "object",
+        "title": "ReasoningStep",
+        "properties": {
+          "step_id": {
+            "type": "string",
+            "title": "Step Id"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "inputs": {
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "Inputs"
+          },
+          "output_summary": {
+            "type": "string",
+            "title": "Output Summary"
+          },
+          "duration_ms": {
+            "type": "integer",
+            "title": "Duration Ms"
+          }
+        },
+        "required": ["step_id", "description", "inputs", "output_summary", "duration_ms"]
+      },
+      "ReasoningTrace": {
+        "type": "object",
+        "title": "ReasoningTrace",
+        "properties": {
+          "steps": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReasoningStep" },
+            "title": "Steps"
+          },
+          "total_duration_ms": {
+            "type": "integer",
+            "title": "Total Duration Ms"
+          }
+        },
+        "required": ["steps", "total_duration_ms"]
+      },
+      "HealthResponse": {
+        "type": "object",
+        "title": "HealthResponse",
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "required": ["status"]
+      },
+      "ProblemDetail": {
+        "type": "object",
+        "title": "ProblemDetail",
+        "description": "RFC 9457 Problem Details for HTTP APIs. Content-Type: application/problem+json. Problem type URIs are under https://aevum.build/problems/.",
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "status": {
+            "type": "integer",
+            "title": "Status"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          },
+          "instance": {
+            "type": "string",
+            "title": "Instance"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "audit_id": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Audit Id",
+            "default": null
+          }
+        },
+        "required": ["type", "title", "status"]
+      },
+      "ComplicationInfo": {
+        "type": "object",
+        "title": "ComplicationInfo",
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "suspended", "pending_approval"],
+            "title": "Status"
+          },
+          "classification_max": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3,
+            "title": "Classification Max"
+          }
+        },
+        "required": ["id", "name", "version", "status", "classification_max"]
+      },
+      "ComplicationHealthResponse": {
+        "type": "object",
+        "title": "ComplicationHealthResponse",
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "latency_ms": {
+            "type": "integer",
+            "title": "Latency Ms"
+          },
+          "last_checked": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Checked"
+          }
+        },
+        "required": ["id", "status"]
+      },
+      "UsageSummary": {
+        "type": "object",
+        "title": "UsageSummary",
+        "properties": {
+          "period_start": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Period Start"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Period End"
+          },
+          "ingest_count": {
+            "type": "integer",
+            "title": "Ingest Count"
+          },
+          "query_count": {
+            "type": "integer",
+            "title": "Query Count"
+          },
+          "commit_count": {
+            "type": "integer",
+            "title": "Commit Count"
+          },
+          "replay_count": {
+            "type": "integer",
+            "title": "Replay Count"
+          },
+          "review_count": {
+            "type": "integer",
+            "title": "Review Count"
+          }
+        },
+        "required": [
+          "period_start", "period_end", "ingest_count", "query_count",
+          "commit_count", "replay_count", "review_count"
+        ]
+      },
+      "FederationPeer": {
+        "type": "object",
+        "title": "FederationPeer",
+        "properties": {
+          "peer_id": {
+            "type": "string",
+            "title": "Peer Id"
+          },
+          "endpoint": {
+            "type": "string",
+            "title": "Endpoint"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "last_seen": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Seen"
+          }
+        },
+        "required": ["peer_id", "endpoint", "status"]
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Aevum-Key"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
 }
