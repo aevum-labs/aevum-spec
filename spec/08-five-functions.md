@@ -48,6 +48,12 @@ It is not exposed as a standalone callable. This is not an omission.
 2. An AuditEvent with event_type "ingest.accepted" is appended to the ledger.
 3. The returned OutputEnvelope has status "ok" and audit_id matching the
    ledger entry.
+If capture_witness is True (the default), the returned
+OutputEnvelope.data["witness"] contains a Witness snapshot:
+sequence_watermark, subject_ids, result_digest, captured_at_ns.
+This snapshot records the sigchain state at query time for
+subsequent stale-context validation by commit().
+
 
 **Failure behavior:**
 - Barrier failure: return OutputEnvelope with status "error" and
@@ -65,6 +71,14 @@ a duplicate entry.
 
 **Purpose:** Traverse the knowledge graph to assemble context for a
 declared purpose.
+
+Optional precondition — witness validation:
+If a witness dict is supplied, the implementation MUST call
+revalidate() before any ledger write. If staleness is detected,
+the implementation MUST return OutputEnvelope with
+status="error", error_code="stale_context", and MUST append
+a "context.stale" event to the sigchain. This closes the TOCTOU
+window in query -> review -> commit flows.
 
 **Preconditions:**
 1. Actor is authenticated.
