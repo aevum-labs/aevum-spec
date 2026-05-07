@@ -131,6 +131,25 @@ with `status="error"` and the error detail in the `data` field.
         Current value: "1.0". Implementations MUST reject envelopes
         with schema_version values they do not recognize.
 
+witness: dict | None
+    OPTIONAL. Present when query() is called with capture_witness=True
+    (the default). Contains a snapshot of the sigchain state at
+    query time. Used by commit() to detect stale context.
+    MUST be None for ingest, review, commit, and replay responses.
+    Consumers that do not use witness validation MUST ignore this field.
+
+    Fields:
+      sequence_watermark: int
+          Highest sigchain sequence number for the queried subjects
+          at the moment query() completed.
+      subject_ids: list[str]
+          The subject IDs that were queried.
+      result_digest: str
+          SHA-256 of the canonicalised query result set.
+      captured_at_ns: int
+          Nanoseconds since epoch when the witness was captured.
+
+
     reasoning_trace: ReasoningTrace
         REQUIRED. Ordered record of reasoning steps taken.
         MUST NOT be omitted.
