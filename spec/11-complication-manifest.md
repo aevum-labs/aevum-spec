@@ -105,3 +105,58 @@ When a complication is UNAVAILABLE:
 
 The circuit breaker MUST reset automatically after a configurable
 recovery period. Manual reset is available via the admin API.
+
+### 11.6 Outcome Event Obligation
+
+When a complication executes an action that is irreversible or
+affects external systems (sending a message, writing to an
+external database, calling an external API), it SHOULD record
+the real-world result by calling commit() with a standardised
+outcome event. This closes the audit trail.
+
+Without an outcome event, the sigchain records that an action was
+approved and initiated but not whether it succeeded or failed.
+
+#### 11.6.1 Outcome Event Types
+
+    action.outcome.ok       — action completed successfully
+    action.outcome.failed   — action attempted and failed
+    action.outcome.partial  — action partially completed
+
+#### 11.6.2 Required Payload Fields
+
+    action_type: str
+        Human-readable name of the action.
+        Example: "email.send", "database.write", "api.call"
+
+    approval_audit_id: str
+        audit_id of the review event that authorised this action.
+
+    summary: str
+        One-sentence human-readable description of what happened.
+
+    detail: dict
+        Structured, complication-defined detail.
+        For failures, MUST include an "error" key (str value).
+        MUST NOT include raw secrets, credentials, or PII.
+
+#### 11.6.3 Example
+
+    engine.commit(
+        event_type="action.outcome.ok",
+        payload={
+            "action_type": "email.send",
+            "approval_audit_id": "urn:aevum:audit:0196f2a1-...",
+            "summary": "Invoice email delivered to customer-42",
+            "detail": {"recipient_hash": "sha256:...", "message_id": "msg-001"},
+        },
+        actor="billing-complication",
+    )
+
+#### 11.6.4 Monitoring Gap
+
+If a complication does not record an outcome event, the sigchain
+shows an approved action with no confirmation of result.
+This is not a barrier violation — it is a compliance gap.
+Operators SHOULD use replay() to identify approved actions
+without a subsequent outcome event.
