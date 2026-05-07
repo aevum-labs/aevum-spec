@@ -176,3 +176,25 @@ ledger entry. It is a read-only reconstruction.
 
 **Determinism:** Two replay calls with the same audit_id and the same
 actor clearance MUST produce identical OutputEnvelopes.
+
+
+### 8.8 Reserved Event Type Prefixes
+
+The following event_type prefixes are reserved by the kernel.
+Application commit() calls MUST NOT use these prefixes:
+
+    ingest.*          — kernel ingest events
+    context.*         — kernel context management (e.g. context.stale)
+    barrier.*         — kernel barrier trigger events
+    complication.*    — kernel complication lifecycle events
+    review.*          — kernel review gate events
+
+The following prefix is reserved for complication outcome events
+and MUST NOT be used for application events:
+
+    action.outcome.*  — complication real-world outcome records
+                        (Section 11.6)
+
+Application event_type values MUST use a namespaced prefix:
+    <publisher>.<category>.<event>
+    Example: "acme.billing.invoice-sent"
